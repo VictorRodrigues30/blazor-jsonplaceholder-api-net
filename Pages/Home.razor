@@ -1,0 +1,71 @@
+﻿@inject HttpClient Http
+@page "/"
+
+<PageTitle>Primeiro Usuário</PageTitle>
+
+<h1>Consulta de Usuário da API</h1>
+<br />
+<br />
+
+@if (carregando)
+{
+    <p>Carregando dados...</p>
+}
+
+@if (usuario != null)
+{
+    <p><strong>Nome:</strong> @usuario.name</p>
+
+    <p><strong>Cidade:</strong> @usuario.address.city</p>
+
+    <p><strong>Empresa:</strong> @usuario.company.name</p>
+}
+
+@if (!string.IsNullOrEmpty(mensagemErro))
+{
+    <p style="color:red">@mensagemErro</p>
+}
+
+@code {
+    private const string Url = "https://jsonplaceholder.typicode.com/users";
+
+    private Usuario? usuario;
+
+    private async Task CarregarUsuario()
+    {
+        carregando = true;
+
+        mensagemErro = null;
+
+        try
+        {
+            var usuarios = await Http.GetFromJsonAsync<List<Usuario>>(Url);
+
+            if (usuarios == null || usuarios.Count == 0)
+            {
+                mensagemErro = "Nenhum usuario encontrado.";
+                carregando = false;
+                return;
+            }
+
+            usuario = usuarios[0];
+            
+            carregando = false;
+        }
+        catch
+        {
+            mensagemErro = "Erro ao carregar os usuários.";
+            carregando = false;
+        }
+    }
+
+
+    private string? mensagemErro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarUsuario();
+    }
+
+    private bool carregando;
+}
